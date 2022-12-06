@@ -5,8 +5,8 @@ const data = readFileSync("./06-input").toString();
 console.log(indexAtStartOfPacket(data));
 console.log(indexAtStartOfMessage(data));
 
-function indexAtStartOfPacket(data) {
-  let currentList = [];
+function indexAtStartOfPacket(data: string) {
+  let currentList: string[] = [];
   for (let i = 0; i < data.length; i++) {
     const char = data[i];
     if (currentList.includes(char)) {
@@ -23,8 +23,8 @@ function indexAtStartOfPacket(data) {
   }
 }
 
-function indexAtStartOfMessage(data) {
-  let currentList = [];
+function indexAtStartOfMessage(data: string) {
+  let currentList: string[] = [];
   for (let i = 0; i < data.length; i++) {
     const char = data[i];
     if (currentList.includes(char)) {
