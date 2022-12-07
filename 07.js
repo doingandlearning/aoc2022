@@ -1,92 +1,92 @@
-{
-  const { readFileSync } = require("node:fs");
+const { readFileSync } = require('node:fs');
 
-  const data = readFileSync("./07-test").toString();
+const data = readFileSync('./07-input').toString();
 
-  const tree = [{ name: "/", size: 0, children: [] }];
-  let currentPosition = tree[0];
-  const currentStack = [];
+const tree = [{ name: '/', size: 0, children: [] }];
+let currentPosition = tree[0];
+const currentStack = [];
 
-  // Create tree
-  data.split("\n").forEach((line) => {
-    if (line.startsWith("$ cd")) {
-      moveDirectory(line.split("$ cd")[1].trim());
-    } else if (line === "$ ls") {
-      //
-    } else {
-      addFileToDirectory(line);
-    }
-  });
+// Create tree
+const instructions = data.split('\n');
 
-  let result = 0;
-  let possibleDirs = [];
-  findAllSizes(tree, 0);
+instructions.forEach((line, index) => {
+	processStep(line, index);
+});
 
-  function findAllSizes(object) {
-    if (
-      object.hasOwnProperty("size") &&
-      parseInt(object.size) < 100000 &&
-      object.hasOwnProperty("children")
-    ) {
-      result += parseInt(object.size);
-    }
+function processStep(line, index) {
+	if (line.startsWith('$ cd')) {
+		moveDirectory(line.split('$ cd')[1].trim());
+	} else if (line === '$ ls') {
+		//
+	} else {
+		addFileToDirectory(line);
+	}
+	if (index === instructions.length - 1 && currentPosition !== tree[0]) {
+		processStep('$ cd ..', index);
+	}
+}
 
-    if (object.hasOwnProperty("size") && object.hasOwnProperty("children")) {
-      possibleDirs.push(object.size);
-    }
+let result = 0;
+let dirSizes = [];
+findAllSizes(tree, 0);
 
-    for (var i = 0; i < Object.keys(object).length; i++) {
-      if (typeof object[Object.keys(object)[i]] == "object") {
-        findAllSizes(object[Object.keys(object)[i]], result);
-      }
-    }
+function findAllSizes(object) {
+	if (object.hasOwnProperty('size') && parseInt(object.size) < 100000 && object.hasOwnProperty('children')) {
+		result += parseInt(object.size);
+	}
 
-    return result;
-  }
+	if (object.hasOwnProperty('size') && object.hasOwnProperty('children')) {
+		dirSizes.push(object.size);
+	}
 
-  console.log(result);
-  possibleDirs.sort((a, b) => b - a);
+	for (var i = 0; i < Object.keys(object).length; i++) {
+		if (typeof object[Object.keys(object)[i]] == 'object') {
+			findAllSizes(object[Object.keys(object)[i]], result);
+		}
+	}
+}
 
-  const neededSpace = 70000000 - possibleDirs[0];
+console.log('The sum of all the directories less t han 100,000 is: ', result);
 
-  for (let i = 1; i < possibleDirs.length; i++) {
-    // next directory is too small
-    if (possibleDirs[i + 1] < neededSpace) {
-      console.log(possibleDirs[i]);
-      break;
-    }
-  }
+dirSizes.sort((a, b) => b - a);
+const availableSpace = 70000000 - dirSizes[0];
+const neededSpace = 30000000 - availableSpace;
 
-  function moveDirectory(path) {
-    if (path === "/") {
-      currentPosition = tree[0];
-    } else if (path === "..") {
-      const size = currentPosition.size;
-      currentPosition = currentStack.pop();
-      currentPosition.size += size;
-    } else {
-      currentStack.push(currentPosition);
-      let targetDirectory = currentPosition.children.find(
-        (item) => item.name === path
-      );
-      if (!targetDirectory) {
-        const newDirectory = { name: path, size: 0, children: [] };
-        currentPosition.children.push(newDirectory);
-        currentPosition = newDirectory;
-      } else {
-        currentPosition = targetDirectory;
-      }
-    }
-  }
+for (let i = 1; i < dirSizes.length; i++) {
+	// next directory is too small
+	if (dirSizes[i + 1] < neededSpace) {
+		console.log('This size of the directory to remove is: ', dirSizes[i]);
+		break;
+	}
+}
 
-  function addFileToDirectory(line) {
-    const [description, name] = line.split(" ");
+function moveDirectory(path) {
+	if (path === '/') {
+		currentPosition = tree[0];
+	} else if (path === '..') {
+		const size = currentPosition.size;
+		currentPosition = currentStack.pop();
+		currentPosition.size += size;
+	} else {
+		currentStack.push(currentPosition);
+		let targetDirectory = currentPosition.children.find((item) => item.name === path);
+		if (!targetDirectory) {
+			const newDirectory = { name: path, size: 0, children: [] };
+			currentPosition.children.push(newDirectory);
+			currentPosition = newDirectory;
+		} else {
+			currentPosition = targetDirectory;
+		}
+	}
+}
 
-    if (description === "dir") {
-      currentPosition.children.push({ name, size: 0, children: [] });
-    } else {
-      currentPosition.children.push({ name, size: parseInt(description) });
-      currentPosition.size += parseInt(description);
-    }
-  }
+function addFileToDirectory(line) {
+	const [description, name] = line.split(' ');
+
+	if (description === 'dir') {
+		currentPosition.children.push({ name, size: 0, children: [] });
+	} else {
+		currentPosition.children.push({ name, size: parseInt(description) });
+		currentPosition.size += parseInt(description);
+	}
 }
